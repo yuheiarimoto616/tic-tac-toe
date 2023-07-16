@@ -2,6 +2,8 @@
 :root {
     --background-color: #F1F1F1;
     --primary-color: #21209C;
+    --secondary-color: #FDB827;
+    --border-color: #23120B; 
 }
 
 * {
@@ -30,14 +32,20 @@ main {
 }
 
 .grid {
-    border: var(--primary-color) 2px solid;
+    border: var(--border-color) 4px solid;
     display: grid;
     grid-template-columns: repeat(3, 150px);
     grid-template-rows: repeat(3, 150px);
 }
 
 .cell {
-    border: 2px var(--primary-color) solid;
+    border: 4px var(--border-color) solid;
+    background-color: var(--primary-color);
+    color: var(--secondary-color);
+    font-size: 5rem;
+    display: grid;
+    justify-content: center;
+    align-items: center;
 }
 
 footer {
