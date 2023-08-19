@@ -93,19 +93,18 @@ const Player = (playerName, Token) => {
 };
 
 const GameController = (() => {
-    let playerOne = Player("Yuhei", CIRCLE);
-    let playerTwo = Player("Arimoto", CROSS);
+    let playerOne = null;
+    let playerTwo = Player("Computer", CROSS);
     let gameBoard = Gameboard();
 
     const setPlayerOne = (player) => {
         playerOne = player;
+        activePlayer = playerOne;
     };
 
     const setPlayerTwo = (player) => {
         playerTwo = player;
     };
-
-    let activePlayer = playerOne;
 
     const switchPlayerTurn = () => {
         activePlayer = activePlayer === playerOne ? playerTwo : playerOne;
@@ -116,21 +115,49 @@ const GameController = (() => {
     const playRound = (row, column) => {
         gameBoard.fillCell(row, column, activePlayer);
         if (gameBoard.checkWin()) {
-            console.log(gameBoard.checkWin());
+            return true;
         };
         switchPlayerTurn();
-    }
+        return false;
+    };
+
+    const restart = () => {
+        gameBoard = Gameboard();
+        playerOne = null;
+    };
 
     const getBoard = () => gameBoard.getBoard();
 
-    return {setPlayerOne, setPlayerTwo, switchPlayerTurn, getActivePlayer, playRound, getBoard};
+    return {setPlayerOne, setPlayerTwo, switchPlayerTurn, getActivePlayer, playRound, restart, getBoard};
 })();
 
 const DisplayController = (() => {
     let cells = document.querySelectorAll('.cell');
+    let nameDisplay = document.querySelector('.turnDisplay');
+    let restartBtn = document.querySelector('.restart button');
+
+    const setUpPlayers = ()  => {
+        let overlay = document.querySelector('.overlay');
+        let modal = document.querySelector('.modal');
+        overlay.classList.add('active');
+        modal.classList.add('active');
+
+        let form = document.querySelector('.modal form');
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            let playerName = document.querySelector('#name').value;
+            let player = Player(playerName, CIRCLE);
+            GameController.setPlayerOne(player);
+            overlay.classList.remove('active');
+            modal.classList.remove('active');
+
+            updateScreen();
+        });
+    };
 
     const updateScreen =  () => {
         const board = GameController.getBoard();
+        nameDisplay.textContent = GameController.getActivePlayer().getName() + "\'s turn";
 
         for (let i = 0; i < board.length; i++) {
             for (let j = 0; j < board.length; j++) {
@@ -142,16 +169,41 @@ const DisplayController = (() => {
         }
     };
 
+    const displayWinner = () => {
+        nameDisplay.textContent = GameController.getActivePlayer().getName() + " won!";
+        cells.forEach(cell => {
+            cell.removeEventListener('click', updateCell);
+        });
+    };
+
     const updateCell = (e) => {
         let cellID = e.target.id;
-        GameController.playRound(parseInt(cellID[0]), parseInt(cellID[1]));
+        let gameSet = GameController.playRound(parseInt(cellID[0]), parseInt(cellID[1]));
         e.target.removeEventListener('click', updateCell);
         updateScreen();
-    }
+        if (gameSet) {
+            console.log("sup");
+            displayWinner();
+        }
+    };
+
+    const start = () => {
+        GameController.restart();
+
+        cells.forEach(cell => {
+            cell.addEventListener('click', updateCell);
+        });
+
+        setUpPlayers();
+    };
 
     cells.forEach(cell => {
         cell.addEventListener('click', updateCell);
     });
 
-    updateScreen();
+    restartBtn.addEventListener('click', start);
+
+    setUpPlayers();
+
+    return {displayWinner};
 })();
