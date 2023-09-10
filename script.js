@@ -139,6 +139,7 @@ const DisplayController = (() => {
     const setUpPlayers = ()  => {
         let overlay = document.querySelector('.overlay');
         let modal = document.querySelector('.modal');
+        document.querySelector('#name').value = "";
         overlay.classList.add('active');
         modal.classList.add('active');
 
@@ -182,7 +183,6 @@ const DisplayController = (() => {
         e.target.removeEventListener('click', updateCell);
         updateScreen();
         if (gameSet) {
-            console.log("sup");
             displayWinner();
         }
     };
@@ -204,6 +204,4 @@ const DisplayController = (() => {
     restartBtn.addEventListener('click', start);
 
     setUpPlayers();
-
-    return {displayWinner};
 })();
