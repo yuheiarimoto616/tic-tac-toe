@@ -127,3 +127,22 @@ footer {
     padding: 2px;
     border-radius: 5px;
 }
+
+.sign {
+    display: flex;
+    gap: 10px;
+}
+
+.sign button {
+    width: 80px;
+    height: 40px;
+    font-size: x-large;
+    font-weight: bold;
+    border: 2px solid gray;
+    cursor: pointer;
+}
+
+.sign button.selected {
+    background-color: var(--secondary-color);
+    color: var(--primary-color);
+}

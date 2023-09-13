@@ -1,8 +1,8 @@
 const CIRCLE = "◯";
 const CROSS = "✕";
+const dimension = 3;
 
 const Gameboard = () => {
-    const dimension = 3;
     const board = [];
 
     for (let i = 0; i < dimension; i++) {
@@ -94,7 +94,8 @@ const Player = (playerName, Token) => {
 
 const GameController = (() => {
     let playerOne = null;
-    let playerTwo = Player("Computer", CROSS);
+    let playerTwo = null;
+    let activePlayer = null
     let gameBoard = Gameboard();
 
     const setPlayerOne = (player) => {
@@ -112,53 +113,64 @@ const GameController = (() => {
 
     const getActivePlayer = () => activePlayer;
 
+    const getComputerMove = () => {
+        console.log('me!');
+        let row = Math.floor(Math.random() * dimension);
+        let column = Math.floor(Math.random() * dimension);
+        let board = gameBoard.getBoard();
+        while (board[row][column].getPlayer() != null) {
+            row = Math.floor(Math.random() * dimension);
+            column = Math.floor(Math.random() * dimension);
+        }
+        if (playRound(row, column)) {
+            DisplayController.displayWinner();
+        }
+        
+    }
+
     const playRound = (row, column) => {
         gameBoard.fillCell(row, column, activePlayer);
         if (gameBoard.checkWin()) {
             return true;
         };
         switchPlayerTurn();
+        if (activePlayer.getName() == 'Computer') {
+            console.log('in playRound');
+            getComputerMove();
+        }
         return false;
     };
 
     const restart = () => {
         gameBoard = Gameboard();
         playerOne = null;
+        playerTwo = null;
     };
 
     const getBoard = () => gameBoard.getBoard();
 
-    return {setPlayerOne, setPlayerTwo, switchPlayerTurn, getActivePlayer, playRound, restart, getBoard};
+    return {setPlayerOne, setPlayerTwo, switchPlayerTurn, getActivePlayer, playRound, restart, getBoard, getComputerMove};
 })();
 
 const DisplayController = (() => {
     let cells = document.querySelectorAll('.cell');
     let nameDisplay = document.querySelector('.turnDisplay');
     let restartBtn = document.querySelector('.restart button');
+    let signBtns = document.querySelectorAll('.sign button');
+    let form = document.querySelector('.modal form');
+    let overlay = document.querySelector('.overlay');
+    let modal = document.querySelector('.modal');
+    let userSign = null;
 
     const setUpPlayers = ()  => {
-        let overlay = document.querySelector('.overlay');
-        let modal = document.querySelector('.modal');
         document.querySelector('#name').value = "";
         overlay.classList.add('active');
         modal.classList.add('active');
-
-        let form = document.querySelector('.modal form');
-        form.addEventListener('submit', (e) => {
-            e.preventDefault();
-            let playerName = document.querySelector('#name').value;
-            let player = Player(playerName, CIRCLE);
-            GameController.setPlayerOne(player);
-            overlay.classList.remove('active');
-            modal.classList.remove('active');
-
-            updateScreen();
-        });
     };
 
     const updateScreen =  () => {
         const board = GameController.getBoard();
-        nameDisplay.textContent = GameController.getActivePlayer().getName() + "\'s turn";
+        // nameDisplay.textContent = GameController.getActivePlayer().getName() + "\'s turn";
 
         for (let i = 0; i < board.length; i++) {
             for (let j = 0; j < board.length; j++) {
@@ -187,6 +199,14 @@ const DisplayController = (() => {
         }
     };
 
+    const signSelect = (e) => {
+        signBtns.forEach(btn => {
+            btn.classList.remove('selected');
+        });
+        e.target.classList.add('selected');
+        userSign = e.target.textContent;
+    }
+
     const start = () => {
         GameController.restart();
 
@@ -203,5 +223,35 @@ const DisplayController = (() => {
 
     restartBtn.addEventListener('click', start);
 
+    signBtns.forEach(btn => {
+        btn.addEventListener('click', signSelect);
+    });
+    
+    form.addEventListener('submit', (e) => {
+        console.log('submitted');
+        e.preventDefault();
+        if (userSign == null) {
+            userSign = CIRCLE;
+        }
+        let playerName = document.querySelector('#name').value;
+        let player = Player(playerName, userSign);
+        if (userSign == CIRCLE) {
+            GameController.setPlayerOne(player);
+            GameController.setPlayerTwo(Player('Computer', CROSS));
+        } else {
+            GameController.setPlayerOne(Player('Computer', CIRCLE));
+            GameController.setPlayerTwo(player);
+            console.log('in setUpPlayers'); 
+            GameController.getComputerMove();
+        }
+        
+        overlay.classList.remove('active');
+        modal.classList.remove('active');
+
+        updateScreen();
+    });
+
     setUpPlayers();
+
+    return {displayWinner};
 })();
